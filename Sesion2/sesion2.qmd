@@ -1,0 +1,128 @@
+---
+title: "Sesión 2: LMM"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+editor: visual
+---
+
+# Introducción
+
+En esta sesión continuaremos con los modelos LMM y llevaremos a cabo una comparación entre estos modelos y el modelo de regresión lineal clásico que hicimos ayer.
+
+Antes de ejecutar este documento, instala los paquetes necesarios. Copia y pega el siguiente código en la consola de R:
+
+install.packages(c("readr", "dplyr", "summarytools", "lme4"))
+
+# Cargar librerias y datos
+
+En esta primera parte, cargaremos y exploraremos los datos que usaremos para la práctica. No necesitas escribir código: todos los comandos ya están listos para ejecutarse en R.
+
+```{r, message=FALSE, warning=FALSE}
+
+#Librerias
+library(readr)
+library(dplyr)
+library(summarytools)
+library(lme4)
+
+# URL RAW del archivo en GitHub
+url <- "https://raw.githubusercontent.com/edwinbhec5-glitch/sesion1_LMM/main/Base_de_estudiantes_por_escuela.csv"
+
+# Descargar a un archivo temporal
+temp_file <- tempfile(fileext = ".csv")
+download.file(url, destfile = temp_file, mode = "wb")
+
+# Leer con base
+datos <- read_csv(temp_file)
+
+#mostrar base
+head(datos)
+
+#mostrar no. grupos
+table(datos$id_escuela)
+```
+
+# Recordando algunos datos de la Sesión 1
+## Gráficos exploratorios
+## Boxplot de notas por escuela
+```{r}
+boxplot(nota ~ id_escuela, data = datos,
+        main = "Distribución de notas por escuela",
+        xlab = "Escuela", ylab = "Nota")
+
+## Relación entre horas de estudio y nota
+plot(nota ~ horas_estudio, data = datos,
+     main = "Nota vs Horas de estudio",
+     xlab = "Horas de estudio", ylab = "Nota")
+abline(lm(nota ~ horas_estudio, data = datos), col = "blue")
+
+## lm simple
+modelo1 <- lm(nota ~ horas_estudio, data = datos)
+summary(modelo1)
+```
+
+# Controlar efectos grupales
+## lm con efectos fijos por escuela
+```{r}
+modelo2 <- lm(nota ~ horas_estudio + factor(id_escuela), data = datos)
+summary(modelo2)
+```
+Al agregar indicadores de escuela (variables ficticias o dummies), se permite que cada escuela tenga su nota promedio distinta (su intercepto). De esta forma controlamos explícitamente las diferencias sistemáticas entre escuelas.
+
+Si comparamos frente al modelo anterior, se observa que la nota general promedio disminuyó y que existen diferencias significativas entre algunas escuelas y la escuela 1 (escuela de referencia).
+
+Además, el coeficiente de horas_estudio sigue siendo significativo, pero tiene un efecto menor. Este coeficiente refleja el efecto promedio ajustado dentro de cada escuela (es decir, controlando por las diferencias de nivel de escuela).
+
+Esta especificación mejora el ajuste frente al modelo simple, pues quita parte de la variabilidad entre escuelas.
+
+PROBLEMA: implica estimar muchos parámetros (uno por escuela), lo cual puede reducir la eficiencia si hay muchas escuelas o pocos datos por escuela. Además, no permite generalizar más allá de las escuelas incluidas.
+
+## Modelo jerárquico
+### Modelo nulo
+```{r}
+
+modelo3 <- lmer(nota ~ 1 + (1 | id_escuela), data = datos)
+summary(modelo3)
+
+performance::icc(modelo3)
+```
+Vemos que el promedio de la nota media global tuvo un cambio importante frente a los anteriores modelos (66.59).
+
+La Varianza entre escuelas (54.89) indica que los estudiantes no son completamente independientes entre sí: quienes pertenecen a la misma escuela tienden a parecerse más entre ellos. 
+
+Por otro lado, la varianza residual (diferencias dentro de escuelas: 111.54) muestra cuánto varían los notas de los estudiantes dentro de cada escuela.
+
+El Coeficiente de correlación intraclase (ICC) de 0.33, indica que la variabilidad total en las notas se debe a diferencias entre escuelas. Es un valor relativamente alto, lo que justifica usar modelos jerárquicos y es una evidencia de que sería un error aplicar un modelo tradicional que no reconozca esta estructura de agrupamiento.
+
+### Con covariable
+```{r}
+modelo4 <- lmer(nota ~ horas_estudio + (1 | id_escuela), data = datos)
+summary(modelo4)
+
+performance::icc(modelo4)
+```
+En el modelo con una variable explicativa como las horas de estudio, se observa que la nota promedio global es de 60.55. Y el coeficiente de horas de estudio (1.49) es significativo.
+
+Por otro lado, la varianza entre escuelas (48.09) bajó frente al modelo anterior, lo que sugiere que parte de las diferencias entre escuelas se deben a las horas de estudio, pero sigue siendo altamente importante la consideración de los grupos ya que el ICC es de 0.32 (una ligera disminución frente al modelo nulo)
+
+## Comparación de modelos
+```{r}
+AIC(modelo1, modelo2, modelo4)
+```
+Al comparar los 3 modelos, aunque el modelo con efectos fijos (modelo 2) tiene el menor AIC, el modelo 4 tiene ventajas de parsimonia y captura elementos que no se podría analizar únicamente con un modelo más simple.
+
+
+## Reflexión
+Es válida otra forma de agrupación para LMM?. Por ejemplo:
+
+```{r}
+tapply(datos$nota, datos$genero, mean)
+```
+
+## Conclusión
+Las escuelas influyen en el rendimiento de los estudiantes (Modelo 3). Las horas de estudio también tienen un efecto importante (Modelo 4). Combinar ambos elementos permite una mejor comprensión de los factores que afectan las notas.
+
+El modelo jerárquico no solo estima el efecto general de estudiar más, sino que también permite entender la variación entre escuelas y aplicar modelos más realistas.
