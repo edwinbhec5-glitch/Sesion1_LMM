@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.24">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>sesion2-lmm</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="sesion2 LMM_files/libs/clipboard/clipboard.min.js"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/popper.min.js"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="sesion2 LMM_files/libs/quarto-html/anchor.min.js"></script>
+<link href="sesion2 LMM_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="sesion2 LMM_files/libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="sesion2 LMM_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="sesion2 LMM_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="sesion2 LMM_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<p>title: “Sesion 2: LMM” format: html: embed-resources: true toc: true number-sections: true editor: visual —</p>
+<section id="introducción" class="level1">
+<h1>Introducción</h1>
+<p>En esta sesión continuaremos con los modelos LMM y desarrollaremos un modelo jerárquico para el análisis intimate partner violence (IPV) con datos de Ecuador (ENVIGMU, 2019)</p>
+<p>Antes de ejecutar este documento, instala los paquetes necesarios. Copia y pega el siguiente código en la consola de R:</p>
+<p>install.packages (c(“foreign”, “ggplot”, “dplyr”,“car”, “stargazer”, “lme4”, “sandwich”, “corrplot” repos = “https://cloud.r-project.org”, lib = .libPaths()[1]))</p>
+</section>
+<section id="cargar-librerias-y-datos" class="level1">
+<h1>Cargar librerias y datos</h1>
+<p>En esta primera parte, cargaremos y exploraremos los datos que usaremos para la práctica. No necesitas escribir código: todos los comandos ya están listos para ejecutarse en R.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stargazer)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sandwich)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># URL RAW del archivo en GitHub</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/edwinbhec5-glitch/sesion1_LMM/main/base_final2.sav"</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Descargar a un archivo temporal</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>temp_file <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">".sav"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(url, <span class="at">destfile =</span> temp_file, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Leer con base</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="fu">read.spss</span>(<span class="at">file=</span>temp_file,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>                    <span class="at">use.value.labels =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>                    <span class="at">to.data.frame =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="análisis-exploratorio" class="level1">
+<h1>Análisis exploratorio</h1>
+<section id="variables-cualitativas" class="level2">
+<h2 class="anchored" data-anchor-id="variables-cualitativas">Variables cualitativas</h2>
+<section id="prevalencia-de-violencia-de-género-x-area" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-area">Prevalencia de Violencia de género x area</h3>
+<p>La prevalencia de violencia es similar en áreas urbanas y rurales, aunque ligeramente mayor en el campo. Esto sugiere que la violencia no es un fenómeno exclusivo de un contexto geográfico, sino que aparece en ambos.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(area, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(area) <span class="sc">%&gt;%</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> area, <span class="at">y =</span> pct, <span class="at">fill =</span> Violencia2)) <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Área"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Porcentaje"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Violencia"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prevalencia de violencia  por área"</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prevalencia-de-violencia-de-género-x-provincia" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-provincia">Prevalencia de Violencia de género x provincia</h3>
+<p>Se observan importantes diferencias a nivel provincial. Provincias como Los Ríos tienen una prevalencia cercana al 70%, mientras que en otras provincias como El Cañar esa prevalencia baja al 35%. Esta variabilidad territorial provee indicios de la importancia de considerar el contexto provincial.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tabyl</span>(prov, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">adorn_totals</span>(<span class="fu">c</span>(<span class="st">"row"</span>, <span class="st">"col"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">adorn_percentages</span>(<span class="at">denominator =</span> <span class="st">"row"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">adorn_pct_formatting</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                           prov    No    Si  Total
+                          Azuay 38.5% 61.5% 100.0%
+                        Bolívar 59.4% 40.6% 100.0%
+                          Cañar 35.0% 65.0% 100.0%
+                         Carchi 53.4% 46.6% 100.0%
+                       Cotopaxi 48.5% 51.5% 100.0%
+                     Chimborazo 55.4% 44.6% 100.0%
+                         El Oro 48.3% 51.7% 100.0%
+                     Esmeraldas 54.4% 45.6% 100.0%
+                         Guayas 59.3% 40.7% 100.0%
+                       Imbabura 46.2% 53.8% 100.0%
+                           Loja 50.3% 49.7% 100.0%
+                       Los Ríos 69.4% 30.6% 100.0%
+                         Manabí 64.4% 35.6% 100.0%
+                Morona Santiago 37.1% 62.9% 100.0%
+                           Napo 38.8% 61.2% 100.0%
+                        Pastaza 38.5% 61.5% 100.0%
+                      Pichincha 50.6% 49.4% 100.0%
+                     Tungurahua 42.4% 57.6% 100.0%
+               Zamora Chinchipe 42.1% 57.9% 100.0%
+                      Galápagos 72.0% 28.0% 100.0%
+                      Sucumbíos 53.2% 46.8% 100.0%
+                       Orellana 57.5% 42.5% 100.0%
+ Santo Domingo de los Tsáchilas 61.3% 38.7% 100.0%
+                    Santa Elena 61.2% 38.8% 100.0%
+                          Total 52.7% 47.3% 100.0%</code></pre>
+</div>
+</div>
+</section>
+<section id="prevalencia-de-violencia-de-género-x-nivel-educación" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-nivel-educación">Prevalencia de Violencia de género x nivel educación</h3>
+<p>Se observa que a medida que aumenta el nivel educativo, disminuye la prevalencia de violencia, lo que sugiere el efecto positivo que puede tener la educación para reducir esta problemática.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(educacion2, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(educacion2) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> educacion2, <span class="at">y =</span> pct, <span class="at">fill =</span> Violencia2)) <span class="sc">+</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Nivel educativo"</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Porcentaje"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Violencia"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prevalencia de violencia según nivel educativo"</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prevalencia-de-violencia-de-género-x-etnia" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-etnia">Prevalencia de Violencia de género x etnia</h3>
+<p>A nivel étnico se observan diferencias entre grupos, por ejemplo, mujeres indígenas reportan mayor prevalencia de violencia, mientras que en otros grupos, como montubias y blancas, las tasas son menores.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(etnia2, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(etnia2) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> etnia2, <span class="at">y =</span> pct, <span class="at">fill =</span> Violencia2)) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Etnia"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Porcentaje"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Violencia"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Prevalencia de violencia según etnia"</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prevalencia-de-violencia-de-género-x-estado-civil" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-estado-civil">Prevalencia de Violencia de género x estado civil</h3>
+<p>Las mujeres sin pareja presentan mayor prevalencia de violencia que casadas o unidas. Esto podría estar relacionado con la violencia sufrida en relaciones pasadas y con factores de vulnerabilidad asociados a la soltería o separación.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(estado_civil2, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(estado_civil2) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Violencia2 <span class="sc">==</span> <span class="st">"Si"</span>) <span class="sc">%&gt;%</span>                   <span class="co"># solo los casos de violencia</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estado_civil2, <span class="at">y =</span> pct)) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"tomato"</span>) <span class="sc">+</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Estado civil"</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Porcentaje de violencia"</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Violencia según estado civil"</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="prevalencia-de-violencia-de-género-x-trabajo" class="level3">
+<h3 class="anchored" data-anchor-id="prevalencia-de-violencia-de-género-x-trabajo">Prevalencia de Violencia de género x trabajo</h3>
+<p>Las mujeres que trabajan reportan más violencia que las que no lo hacen. Esto puede deberse a tensiones asociadas con la participación laboral o a diferencias en la independencia económica. El modelo servirá para explorar si este efecto se mantiene al controlar por otras variables.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(trabaja2019, Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(trabaja2019) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Violencia2 <span class="sc">==</span> <span class="st">"Si"</span>) <span class="sc">%&gt;%</span>                   <span class="co"># solo los casos de violencia</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> trabaja2019, <span class="at">y =</span> pct)) <span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"tomato"</span>) <span class="sc">+</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Condición Laboral"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Porcentaje de violencia"</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Violencia según condición laboral"</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="análisis-exploratorio-variables-cuantitativas" class="level2">
+<h2 class="anchored" data-anchor-id="análisis-exploratorio-variables-cuantitativas">Análisis exploratorio variables cuantitativas</h2>
+<section id="variables-individuales" class="level3">
+<h3 class="anchored" data-anchor-id="variables-individuales">Variables individuales</h3>
+<p>Variable como la edad de la mujer y en especial el número de hijos, parecen mostrar diferencias entre quienes han sido victimas de violencia de género por parte de sus parejas.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">edad_media =</span> <span class="fu">mean</span>(edad, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">hijos_medio =</span> <span class="fu">mean</span>(NhijosV, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  Violencia2 edad_media hijos_medio
+  &lt;fct&gt;           &lt;dbl&gt;       &lt;dbl&gt;
+1 No               45.7        1.79
+2 Si               47.5        2.11</code></pre>
+</div>
+</div>
+</section>
+<section id="variables-relacionales-y-roles-género" class="level3">
+<h3 class="anchored" data-anchor-id="variables-relacionales-y-roles-género">Variables relacionales y roles género</h3>
+<p>Algo similar sucede con la transmisión intergeneracional de la violencia. El hecho de haber sufrido Violencia de Género en la familia de orígen de la encuestada (IFOV_M), así como que su pareja se haya criado en un hogar donde existía violencia de género (IFOV_P), parecen marcar una diferencia. De igual forma, las creencias culturales relacionadas a los roles de género parecen influir en esta problemática.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>base <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Violencia2) <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">IFOV_M_medio =</span> <span class="fu">mean</span>(IFOV_M, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">IFOV_P_medio =</span> <span class="fu">mean</span>(IFOV_P, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">IRG_medio =</span> <span class="fu">mean</span>(IRG, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+  Violencia2 IFOV_M_medio IFOV_P_medio IRG_medio
+  &lt;fct&gt;             &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+1 No                 1.21        0.553      4.71
+2 Si                 2.31        1.22       5.26</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="matriz-de-correlaciones" class="level2">
+<h2 class="anchored" data-anchor-id="matriz-de-correlaciones">Matriz de correlaciones</h2>
+<p>No parecen existir fuertes correlaciones lineales entre las variables seleccionadas, por lo que los problemas de multicolinealidad serían menores.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>base1<span class="ot">=</span><span class="fu">subset</span>(base,<span class="at">select =</span> <span class="fu">c</span>(edad,NhijosV,Pobxing,IFOV_M,IFOV_P,IRG))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>matcor<span class="ot">=</span><span class="fu">cor</span>(<span class="fu">na.omit</span>(base1))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">corrplot</span>(matcor, <span class="at">method =</span> <span class="st">'number'</span>) <span class="co">#metodo grafico (ellipse)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sesion2-LMM_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="modelización" class="level1">
+<h1>Modelización</h1>
+<section id="definición-de-referencias-para-variables-cualitativas" class="level2">
+<h2 class="anchored" data-anchor-id="definición-de-referencias-para-variables-cualitativas">Definición de referencias para variables cualitativas</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>base<span class="sc">$</span>area<span class="ot">=</span><span class="fu">relevel</span>(base<span class="sc">$</span>area,<span class="at">ref=</span><span class="st">"Urbana"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>base<span class="sc">$</span>estado_civil<span class="ot">=</span><span class="fu">relevel</span>(base<span class="sc">$</span>estado_civil2,<span class="at">ref=</span><span class="st">"Casadas"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>base<span class="sc">$</span>educacion2<span class="ot">=</span><span class="fu">relevel</span>(base<span class="sc">$</span>educacion2,<span class="at">ref=</span><span class="st">"Superior"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>base<span class="sc">$</span>etnia2<span class="ot">=</span><span class="fu">relevel</span>(base<span class="sc">$</span>etnia2,<span class="at">ref=</span><span class="st">"Mestiza"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="modelo-logit-básico" class="level2">
+<h2 class="anchored" data-anchor-id="modelo-logit-básico">Modelo logit básico</h2>
+<p>Este modelo no considera el contexto jerárquico de los datos, pero permite analizar las relaciones existentes entre la violencia de género en pareja y distintos factores que podrían explicar este problema.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>logit <span class="ot">&lt;-</span> <span class="fu">glm</span>(Violencia2 <span class="sc">~</span> edad_z<span class="sc">+</span>NhijosV_z<span class="sc">+</span>area<span class="sc">+</span>estado_civil2<span class="sc">+</span>educacion2<span class="sc">+</span>etnia2<span class="sc">+</span>trabaja2019<span class="sc">+</span>Pobxing_z<span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>               IFOV_M_z<span class="sc">+</span>IFOV_P_z<span class="sc">+</span>IRG_z, <span class="at">data =</span> base, <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(logit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = Violencia2 ~ edad_z + NhijosV_z + area + estado_civil2 + 
+    educacion2 + etnia2 + trabaja2019 + Pobxing_z + IFOV_M_z + 
+    IFOV_P_z + IRG_z, family = binomial(link = "logit"), data = base)
+
+Coefficients:
+                        Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)             -0.35761    0.05248  -6.815 9.46e-12 ***
+edad_z                   0.02873    0.02243   1.281 0.200346    
+NhijosV_z                0.06470    0.01906   3.395 0.000687 ***
+areaRural                0.03944    0.04203   0.938 0.348001    
+estado_civil2Unidas     -0.15461    0.04652  -3.323 0.000889 ***
+estado_civil2Sin pareja  0.75017    0.04720  15.894  &lt; 2e-16 ***
+educacion2Ninguna        0.16094    0.09258   1.738 0.082150 .  
+educacion2Primaria       0.24981    0.05955   4.195 2.73e-05 ***
+educacion2Secundaria     0.28031    0.05614   4.993 5.94e-07 ***
+etnia2Indígena           0.13656    0.06284   2.173 0.029760 *  
+etnia2Afrodescendiente  -0.04903    0.10134  -0.484 0.628543    
+etnia2Montubia          -0.37864    0.12455  -3.040 0.002365 ** 
+etnia2Blanca            -0.24191    0.12000  -2.016 0.043817 *  
+trabaja2019No           -0.26006    0.03798  -6.847 7.54e-12 ***
+Pobxing_z                0.02536    0.01938   1.309 0.190573    
+IFOV_M_z                 0.38471    0.01968  19.551  &lt; 2e-16 ***
+IFOV_P_z                 0.39817    0.01935  20.578  &lt; 2e-16 ***
+IRG_z                    0.14440    0.02043   7.068 1.57e-12 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 19459  on 14065  degrees of freedom
+Residual deviance: 17543  on 14048  degrees of freedom
+AIC: 17579
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+</section>
+<section id="modelos-jerarquicos" class="level2">
+<h2 class="anchored" data-anchor-id="modelos-jerarquicos">Modelos Jerarquicos</h2>
+<section id="nulo" class="level3">
+<h3 class="anchored" data-anchor-id="nulo">Nulo</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>jerarquico0 <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  Violencia2 <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> prov<span class="sc">/</span>upm),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> base,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(jerarquico0)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Violencia2 ~ 1 + (1 | prov/upm)
+   Data: base
+
+     AIC      BIC   logLik deviance df.resid 
+ 18845.4  18868.0  -9419.7  18839.4    14063 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.6003 -0.8513 -0.5786  0.9171  1.7682 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ upm:prov (Intercept) 0.3625   0.6021  
+ prov     (Intercept) 0.1912   0.4373  
+Number of obs: 14066, groups:  upm:prov, 2594; prov, 24
+
+Fixed effects:
+            Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -0.07372    0.09208  -0.801    0.423</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>performance<span class="sc">::</span><span class="fu">icc</span>(jerarquico0)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Intraclass Correlation Coefficient
+
+    Adjusted ICC: 0.144
+  Unadjusted ICC: 0.144</code></pre>
+</div>
+</div>
+<p>Se observa que la mayor parte de la variabilidad contextual está en las UPM. Esto indica que las diferencias entre unidades primarias de muestreo (barrios, sectores) son más relevantes que las diferencias entre provincias. Si bien el nivel provincial aporta variabilidad, esto es menor.</p>
+<p>En otras palabras el contexto regional importa, pero el microcontexto inmediato (UPM) pesa más.</p>
+<p>Se observa que el Coeficiente de Correlacion Intraclase es de 0.144 significa que alrededor del 14% de la varianza total en la violencia de pareja se explica por diferencias entre contextos (UPM y provincias), lo que justifica plenamente un modelo jerárquico.</p>
+</section>
+<section id="var-individuales-contexto-provincial-pobreza" class="level3">
+<h3 class="anchored" data-anchor-id="var-individuales-contexto-provincial-pobreza">Var individuales + contexto provincial (pobreza)</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>jerarquico1 <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  Violencia <span class="sc">~</span> edad_z<span class="sc">+</span>NhijosV_z<span class="sc">+</span>area<span class="sc">+</span>estado_civil2<span class="sc">+</span>educacion2<span class="sc">+</span>etnia2<span class="sc">+</span>trabaja2019<span class="sc">+</span>Pobxing_z<span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    (<span class="dv">1</span> <span class="sc">|</span> prov<span class="sc">/</span>upm),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> base,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+Model failed to converge with max|grad| = 0.00415716 (tol = 0.002, component 1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(jerarquico1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Violencia ~ edad_z + NhijosV_z + area + estado_civil2 + educacion2 +  
+    etnia2 + trabaja2019 + Pobxing_z + (1 | prov/upm)
+   Data: base
+
+     AIC      BIC   logLik deviance df.resid 
+ 18258.8  18387.2  -9112.4  18224.8    14049 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.5888 -0.8057 -0.5015  0.8707  2.3216 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ upm:prov (Intercept) 0.3723   0.6102  
+ prov     (Intercept) 0.1602   0.4002  
+Number of obs: 14066, groups:  upm:prov, 2594; prov, 24
+
+Fixed effects:
+                         Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)             -0.569693   0.099572  -5.721 1.06e-08 ***
+edad_z                  -0.003301   0.023490  -0.141   0.8883    
+NhijosV_z                0.082167   0.020195   4.069 4.73e-05 ***
+areaRural                0.014211   0.053530   0.265   0.7906    
+estado_civil2Unidas     -0.115415   0.049856  -2.315   0.0206 *  
+estado_civil2Sin pareja  0.819574   0.049829  16.448  &lt; 2e-16 ***
+educacion2Ninguna        0.491198   0.097578   5.034 4.81e-07 ***
+educacion2Primaria       0.520724   0.061948   8.406  &lt; 2e-16 ***
+educacion2Secundaria     0.445274   0.058677   7.589 3.24e-14 ***
+etnia2Indígena           0.120753   0.072659   1.662   0.0965 .  
+etnia2Afrodescendiente   0.064821   0.117389   0.552   0.5808    
+etnia2Montubia          -0.214055   0.134804  -1.588   0.1123    
+etnia2Blanca            -0.267426   0.125073  -2.138   0.0325 *  
+trabaja2019No           -0.245111   0.040376  -6.071 1.27e-09 ***
+Pobxing_z                0.109357   0.080534   1.358   0.1745    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Correlation matrix not shown by default, as p = 15 &gt; 12.
+Use print(x, correlation=TRUE)  or
+    vcov(x)        if you need it</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>optimizer (Nelder_Mead) convergence code: 0 (OK)
+Model failed to converge with max|grad| = 0.00415716 (tol = 0.002, component 1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>performance<span class="sc">::</span><span class="fu">icc</span>(jerarquico1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Intraclass Correlation Coefficient
+
+    Adjusted ICC: 0.139
+  Unadjusted ICC: 0.131</code></pre>
+</div>
+</div>
+<p>Al añadir variables individuales y la pobreza provincial, la varianza entre provincias disminuye. Esto significa que parte de las diferencias territoriales se explica por estas variables, aunque la pobreza en sí no resulta estadísticamente significativa.</p>
+</section>
+<section id="var-individuales-pobreza-ifov-irgn" class="level3">
+<h3 class="anchored" data-anchor-id="var-individuales-pobreza-ifov-irgn">Var individuales + pobreza + IFOV + IRGN</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>jerarquico2 <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  Violencia <span class="sc">~</span> edad_z<span class="sc">+</span>NhijosV_z<span class="sc">+</span>area<span class="sc">+</span>estado_civil2<span class="sc">+</span>educacion2<span class="sc">+</span>etnia2<span class="sc">+</span>trabaja2019<span class="sc">+</span>Pobxing_z<span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    IFOV_M_z<span class="sc">+</span>IFOV_P_z<span class="sc">+</span>IRG_z<span class="sc">+</span>(<span class="dv">1</span> <span class="sc">|</span> prov<span class="sc">/</span>upm),</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> base,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+Model failed to converge with max|grad| = 0.00665649 (tol = 0.002, component 1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(jerarquico2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Violencia ~ edad_z + NhijosV_z + area + estado_civil2 + educacion2 +  
+    etnia2 + trabaja2019 + Pobxing_z + IFOV_M_z + IFOV_P_z +  
+    IRG_z + (1 | prov/upm)
+   Data: base
+
+     AIC      BIC   logLik deviance df.resid 
+ 17288.5  17439.5  -8624.2  17248.5    14046 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.6524 -0.7425 -0.4408  0.8253  2.4539 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ upm:prov (Intercept) 0.3063   0.5534  
+ prov     (Intercept) 0.1097   0.3312  
+Number of obs: 14066, groups:  upm:prov, 2594; prov, 24
+
+Fixed effects:
+                         Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)             -0.435118   0.089832  -4.844 1.27e-06 ***
+edad_z                   0.022082   0.024266   0.910  0.36283    
+NhijosV_z                0.064135   0.020512   3.127  0.00177 ** 
+areaRural                0.006736   0.053444   0.126  0.89970    
+estado_civil2Unidas     -0.116641   0.051034  -2.286  0.02228 *  
+estado_civil2Sin pareja  0.837031   0.051169  16.358  &lt; 2e-16 ***
+educacion2Ninguna        0.254090   0.101498   2.503  0.01230 *  
+educacion2Primaria       0.319700   0.065360   4.891 1.00e-06 ***
+educacion2Secundaria     0.330649   0.060477   5.467 4.57e-08 ***
+etnia2Indígena           0.062689   0.074285   0.844  0.39873    
+etnia2Afrodescendiente   0.019799   0.119204   0.166  0.86808    
+etnia2Montubia          -0.208910   0.136786  -1.527  0.12669    
+etnia2Blanca            -0.253024   0.127875  -1.979  0.04785 *  
+trabaja2019No           -0.217295   0.041388  -5.250 1.52e-07 ***
+Pobxing_z                0.062787   0.067993   0.923  0.35578    
+IFOV_M_z                 0.380525   0.021259  17.900  &lt; 2e-16 ***
+IFOV_P_z                 0.404186   0.020809  19.424  &lt; 2e-16 ***
+IRG_z                    0.122215   0.022211   5.503 3.74e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Correlation matrix not shown by default, as p = 18 &gt; 12.
+Use print(x, correlation=TRUE)  or
+    vcov(x)        if you need it</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>optimizer (Nelder_Mead) convergence code: 0 (OK)
+Model failed to converge with max|grad| = 0.00665649 (tol = 0.002, component 1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>performance<span class="sc">::</span><span class="fu">icc</span>(jerarquico2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Intraclass Correlation Coefficient
+
+    Adjusted ICC: 0.112
+  Unadjusted ICC: 0.095</code></pre>
+</div>
+</div>
+<p>Cuando se agregan indicadores de violencia en la familia de origen (IFOV) y roles de género (IRG), estos son altamente significativos y reducen aún más la varianza entre provincias. Esto muestra que la historia familiar y las creencias de género son factores clave para entender la violencia.</p>
+</section>
+</section>
+<section id="comparación-de-modelos" class="level2">
+<h2 class="anchored" data-anchor-id="comparación-de-modelos">Comparación de modelos</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(jerarquico0, jerarquico1,jerarquico2, logit, <span class="at">test =</span> <span class="st">"LRT"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data: base
+Models:
+jerarquico0: Violencia2 ~ 1 + (1 | prov/upm)
+jerarquico1: Violencia ~ edad_z + NhijosV_z + area + estado_civil2 + educacion2 + etnia2 + trabaja2019 + Pobxing_z + (1 | prov/upm)
+logit: Violencia2 ~ edad_z + NhijosV_z + area + estado_civil2 + educacion2 + etnia2 + trabaja2019 + Pobxing_z + IFOV_M_z + IFOV_P_z + IRG_z
+jerarquico2: Violencia ~ edad_z + NhijosV_z + area + estado_civil2 + educacion2 + etnia2 + trabaja2019 + Pobxing_z + IFOV_M_z + IFOV_P_z + IRG_z + (1 | prov/upm)
+            npar   AIC   BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)    
+jerarquico0    3 18845 18868 -9419.7    18839                         
+jerarquico1   17 18259 18387 -9112.4    18225 614.57 14  &lt; 2.2e-16 ***
+logit         18 17579 17714 -8771.3    17543 682.28  1  &lt; 2.2e-16 ***
+jerarquico2   20 17289 17440 -8624.2    17249 294.06  2  &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(jerarquico0, jerarquico1, jerarquico2, logit,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">"text"</span>,</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">summary=</span>F,</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"Modelos IPV"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Modelos IPV
+===========================================================================
+                                        Dependent variable:                
+                        ---------------------------------------------------
+                            Violencia2           Violencia       Violencia2
+                        generalized linear  generalized linear    logistic 
+                          mixed-effects        mixed-effects               
+                               (1)            (2)        (3)        (4)    
+---------------------------------------------------------------------------
+edad_z                                       -0.003     0.022      0.029   
+                                            (0.023)    (0.024)    (0.022)  
+                                                                           
+NhijosV_z                                   0.082***   0.064***   0.065*** 
+                                            (0.020)    (0.021)    (0.019)  
+                                                                           
+areaRural                                    0.014      0.007      0.039   
+                                            (0.054)    (0.053)    (0.042)  
+                                                                           
+estado_civil2Unidas                         -0.115**   -0.117**  -0.155*** 
+                                            (0.050)    (0.051)    (0.047)  
+                                                                           
+estado_civil2Sin pareja                     0.820***   0.837***   0.750*** 
+                                            (0.050)    (0.051)    (0.047)  
+                                                                           
+educacion2Ninguna                           0.491***   0.254**     0.161*  
+                                            (0.098)    (0.101)    (0.093)  
+                                                                           
+educacion2Primaria                          0.521***   0.320***   0.250*** 
+                                            (0.062)    (0.065)    (0.060)  
+                                                                           
+educacion2Secundaria                        0.445***   0.331***   0.280*** 
+                                            (0.059)    (0.060)    (0.056)  
+                                                                           
+etnia2Indígena                               0.121*     0.063     0.137**  
+                                            (0.073)    (0.074)    (0.063)  
+                                                                           
+etnia2Afrodescendiente                       0.065      0.020      -0.049  
+                                            (0.117)    (0.119)    (0.101)  
+                                                                           
+etnia2Montubia                               -0.214     -0.209   -0.379*** 
+                                            (0.135)    (0.137)    (0.125)  
+                                                                           
+etnia2Blanca                                -0.267**   -0.253**   -0.242** 
+                                            (0.125)    (0.128)    (0.120)  
+                                                                           
+trabaja2019No                              -0.245***  -0.217***  -0.260*** 
+                                            (0.040)    (0.041)    (0.038)  
+                                                                           
+Pobxing_z                                    0.109      0.063      0.025   
+                                            (0.081)    (0.068)    (0.019)  
+                                                                           
+IFOV_M_z                                               0.381***   0.385*** 
+                                                       (0.021)    (0.020)  
+                                                                           
+IFOV_P_z                                               0.404***   0.398*** 
+                                                       (0.021)    (0.019)  
+                                                                           
+IRG_z                                                  0.122***   0.144*** 
+                                                       (0.022)    (0.020)  
+                                                                           
+Constant                      -0.074       -0.570***  -0.435***  -0.358*** 
+                             (0.092)        (0.100)    (0.090)    (0.052)  
+                                                                           
+---------------------------------------------------------------------------
+Observations                  14,066         14,066     14,066     14,066  
+Log Likelihood              -9,419.682     -9,112.395 -8,624.226 -8,771.254
+Akaike Inf. Crit.           18,845.360     18,258.790 17,288.450 17,578.510
+Bayesian Inf. Crit.         18,868.020     18,387.170 17,439.480           
+===========================================================================
+Note:                                           *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+</div>
+<p>La comparación de modelos muestra que cada paso mejora el ajuste (AIC más bajo). El modelo jerárquico completo (jerarquico2) explica mejor los datos que el logit sin jerarquía, confirmando la importancia de los niveles territoriales.</p>
+</section>
+</section>
+<section id="conclusiones" class="level1">
+<h1>Conclusiones</h1>
+<p>La violencia de género en Ecuador presenta una alta prevalencia e importantes diferencias según las características de la mujer (estado civil, educación, número de hijos, etc), pero factores como la violencia en familia de orígen y aspectos culturales como los roles de género son relacionales y de roles de género son los más relevantes.</p>
+<p>La variabilidad encontrada entre provincias y, sobre todo, entre las unidades primarias de muestreo, evidencia que el entorno social y comunitario es un componente clave para entender la magnitud del problema, por lo que la utilización de modelos jerárquicos es muy relevante.</p>
+<p>El uso de un modelo nulo mostró la importancia de estimar la variabilidad entre niveles, mientras que la inclusión progresiva de predictores individuales y contextuales evidenció cómo se mejora el ajuste del modelo y la capacidad explicativa.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
