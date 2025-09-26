@@ -1,0 +1,300 @@
+---
+title: "Sesion 2: LMM"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+editor: visual
+---
+
+# Introducción
+
+En esta sesión continuaremos con los modelos LMM y desarrollaremos un modelo jerárquico para el análisis intimate partner violence (IPV) con datos de Ecuador (ENVIGMU, 2019)
+
+Antes de ejecutar este documento, instala los paquetes necesarios. Copia y pega el siguiente código en la consola de R:
+
+install.packages (c("foreign", "ggplot", "dplyr","car", "stargazer", "lme4", "sandwich", "corrplot"))
+
+# Cargar librerias y datos
+
+En esta primera parte, cargaremos y exploraremos los datos que usaremos para la práctica. No necesitas escribir código: todos los comandos ya están listos para ejecutarse en R.
+
+```{r, message=FALSE, warning=FALSE}
+library(foreign)
+library(ggplot2)
+library(dplyr)
+library(janitor)
+library(corrplot)
+library(car)
+library(stargazer)
+library(lme4)
+library(sandwich)
+
+
+# URL RAW del archivo en GitHub
+url <- "https://raw.githubusercontent.com/edwinbhec5-glitch/sesion1_LMM/main/base_final2.sav"
+
+# Descargar a un archivo temporal
+temp_file <- tempfile(fileext = ".sav")
+download.file(url, destfile = temp_file, mode = "wb")
+
+# Leer con base
+base <- read.spss(file=temp_file,
+                    use.value.labels = TRUE,
+                    to.data.frame = TRUE)
+
+```
+
+# Análisis exploratorio
+
+## Variables cualitativas
+
+### Prevalencia de Violencia de género x area
+
+La prevalencia de violencia es similar en áreas urbanas y rurales, aunque ligeramente mayor en el campo. Esto sugiere que la violencia no es un fenómeno exclusivo de un contexto geográfico, sino que aparece en ambos.
+
+```{r}
+base %>%
+  count(area, Violencia2) %>%
+  group_by(area) %>%
+  mutate(pct = n / sum(n)) %>%
+  ggplot(aes(x = area, y = pct, fill = Violencia2)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Área",
+    y = "Porcentaje",
+    fill = "Violencia",
+    title = "Prevalencia de violencia  por área"
+  ) +
+  theme_minimal()
+```
+
+### Prevalencia de Violencia de género x provincia
+
+Se observan importantes diferencias a nivel provincial. Provincias como Los Ríos tienen una prevalencia cercana al 70%, mientras que en otras provincias como El Cañar esa prevalencia baja al 35%. Esta variabilidad territorial provee indicios de la importancia de considerar el contexto provincial.
+
+```{r}
+base %>%
+  tabyl(prov, Violencia2) %>%
+  adorn_totals(c("row", "col")) %>%
+  adorn_percentages(denominator = "row") %>%
+  adorn_pct_formatting()
+```
+
+### Prevalencia de Violencia de género x nivel educación
+
+Se observa que a medida que aumenta el nivel educativo, disminuye la prevalencia de violencia, lo que sugiere el efecto positivo que puede tener la educación para reducir esta problemática.
+
+```{r}
+base %>%
+  count(educacion2, Violencia2) %>%
+  group_by(educacion2) %>%
+  mutate(pct = n / sum(n)) %>%
+  ggplot(aes(x = educacion2, y = pct, fill = Violencia2)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Nivel educativo",
+    y = "Porcentaje",
+    fill = "Violencia",
+    title = "Prevalencia de violencia según nivel educativo"
+  ) +
+  theme_minimal()
+```
+
+### Prevalencia de Violencia de género x etnia
+
+A nivel étnico se observan diferencias entre grupos, por ejemplo, mujeres indígenas reportan mayor prevalencia de violencia, mientras que en otros grupos, como montubias y blancas, las tasas son menores.
+
+```{r}
+base %>%
+  count(etnia2, Violencia2) %>%
+  group_by(etnia2) %>%
+  mutate(pct = n / sum(n)) %>%
+  ggplot(aes(x = etnia2, y = pct, fill = Violencia2)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Etnia",
+    y = "Porcentaje",
+    fill = "Violencia",
+    title = "Prevalencia de violencia según etnia"
+  ) +
+  theme_minimal()
+```
+
+### Prevalencia de Violencia de género x estado civil
+
+Las mujeres sin pareja presentan mayor prevalencia de violencia que casadas o unidas. Esto podría estar relacionado con la violencia sufrida en relaciones pasadas y con factores de vulnerabilidad asociados a la soltería o separación.
+
+```{r}
+base %>%
+  count(estado_civil2, Violencia2) %>%
+  group_by(estado_civil2) %>%
+  mutate(pct = n / sum(n)) %>%
+  filter(Violencia2 == "Si") %>%                   # solo los casos de violencia
+  ggplot(aes(x = estado_civil2, y = pct)) +
+  geom_col(fill = "tomato") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Estado civil",
+    y = "Porcentaje de violencia",
+    title = "Violencia según estado civil"
+  ) +
+  theme_minimal()
+```
+
+### Prevalencia de Violencia de género x trabajo
+
+Las mujeres que trabajan reportan más violencia que las que no lo hacen. Esto puede deberse a tensiones asociadas con la participación laboral o a diferencias en la independencia económica. El modelo servirá para explorar si este efecto se mantiene al controlar por otras variables.
+
+```{r}
+base %>%
+  count(trabaja2019, Violencia2) %>%
+  group_by(trabaja2019) %>%
+  mutate(pct = n / sum(n)) %>%
+  filter(Violencia2 == "Si") %>%                   # solo los casos de violencia
+  ggplot(aes(x = trabaja2019, y = pct)) +
+  geom_col(fill = "tomato") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    x = "Condición Laboral",
+    y = "Porcentaje de violencia",
+    title = "Violencia según condición laboral"
+  ) +
+  theme_minimal()
+```
+
+## Análisis exploratorio variables cuantitativas
+
+### Variables individuales
+
+Variable como la edad de la mujer y en especial el número de hijos, parecen mostrar diferencias entre quienes han sido victimas de violencia de género por parte de sus parejas.
+
+```{r}
+base %>%
+  group_by(Violencia2) %>%
+  summarise(
+    edad_media = mean(edad, na.rm = TRUE),
+    hijos_medio = mean(NhijosV, na.rm = TRUE),
+    )
+```
+
+### Variables relacionales y roles género
+
+Algo similar sucede con la transmisión intergeneracional de la violencia. El hecho de haber sufrido Violencia de Género en la familia de orígen de la encuestada (IFOV_M), así como que su pareja se haya criado en un hogar donde existía violencia de género (IFOV_P), parecen marcar una diferencia. De igual forma, las creencias culturales relacionadas a los roles de género parecen influir en esta problemática.
+
+```{r}
+base %>%
+  group_by(Violencia2) %>%
+  summarise(
+    IFOV_M_medio = mean(IFOV_M, na.rm = TRUE),
+    IFOV_P_medio = mean(IFOV_P, na.rm = TRUE),
+    IRG_medio = mean(IRG, na.rm = TRUE),
+  )
+```
+
+## Matriz de correlaciones
+
+No parecen existir fuertes correlaciones lineales entre las variables seleccionadas, por lo que los problemas de multicolinealidad serían menores.
+
+```{r}
+base1=subset(base,select = c(edad,NhijosV,Pobxing,IFOV_M,IFOV_P,IRG))
+matcor=cor(na.omit(base1))
+corrplot(matcor, method = 'number') #metodo grafico (ellipse)
+```
+
+# Modelización
+
+## Definición de referencias para variables cualitativas
+
+```{r}
+base$area=relevel(base$area,ref="Urbana")
+base$estado_civil=relevel(base$estado_civil2,ref="Casadas")
+base$educacion2=relevel(base$educacion2,ref="Superior")
+base$etnia2=relevel(base$etnia2,ref="Mestiza")
+```
+
+## Modelo logit básico
+
+Este modelo no considera el contexto jerárquico de los datos, pero permite analizar las relaciones existentes entre la violencia de género en pareja y distintos factores que podrían explicar este problema.
+
+```{r}
+logit <- glm(Violencia2 ~ edad_z+NhijosV_z+area+estado_civil2+educacion2+etnia2+trabaja2019+Pobxing_z+
+               IFOV_M_z+IFOV_P_z+IRG_z, data = base, family = binomial(link = "logit"))
+
+summary(logit)
+```
+
+## Modelos Jerarquicos
+
+### Nulo
+
+```{r}
+jerarquico0 <- glmer(
+  Violencia2 ~ 1 + (1 | prov/upm),
+  data = base,
+  family = binomial(link = "logit"))
+
+summary(jerarquico0)
+performance::icc(jerarquico0)
+```
+
+Se observa que la mayor parte de la variabilidad contextual está en las UPM. Esto indica que las diferencias entre unidades primarias de muestreo (barrios, sectores) son más relevantes que las diferencias entre provincias. Si bien el nivel provincial aporta variabilidad, esto es menor.
+
+En otras palabras el contexto regional importa, pero el microcontexto inmediato (UPM) pesa más.
+
+Se observa que el Coeficiente de Correlacion Intraclase es de 0.144 significa que alrededor del 14% de la varianza total en la violencia de pareja se explica por diferencias entre contextos (UPM y provincias), lo que justifica plenamente un modelo jerárquico.
+
+### Var individuales + contexto provincial (pobreza)
+
+```{r}
+jerarquico1 <- glmer(
+  Violencia ~ edad_z+NhijosV_z+area+estado_civil2+educacion2+etnia2+trabaja2019+Pobxing_z+
+    (1 | prov/upm),
+  data = base,
+  family = binomial(link = "logit"))
+
+summary(jerarquico1)
+performance::icc(jerarquico1)
+```
+
+Al añadir variables individuales y la pobreza provincial, la varianza entre provincias disminuye. Esto significa que parte de las diferencias territoriales se explica por estas variables, aunque la pobreza en sí no resulta estadísticamente significativa.
+
+### Var individuales + pobreza + IFOV + IRGN
+
+```{r}
+jerarquico2 <- glmer(
+  Violencia ~ edad_z+NhijosV_z+area+estado_civil2+educacion2+etnia2+trabaja2019+Pobxing_z+
+    IFOV_M_z+IFOV_P_z+IRG_z+(1 | prov/upm),
+  data = base,
+  family = binomial(link = "logit"))
+
+summary(jerarquico2)
+performance::icc(jerarquico2)
+```
+
+Cuando se agregan indicadores de violencia en la familia de origen (IFOV) y roles de género (IRG), estos son altamente significativos y reducen aún más la varianza entre provincias. Esto muestra que la historia familiar y las creencias de género son factores clave para entender la violencia.
+
+## Comparación de modelos
+
+```{r}
+anova(jerarquico0, jerarquico1,jerarquico2, logit, test = "LRT")
+
+stargazer(jerarquico0, jerarquico1, jerarquico2, logit,
+          type = "text",
+          summary=F,
+          title = "Modelos IPV")
+```
+
+La comparación de modelos muestra que cada paso mejora el ajuste (AIC más bajo). El modelo jerárquico completo (jerarquico2) explica mejor los datos que el logit sin jerarquía, confirmando la importancia de los niveles territoriales.
+
+# Conclusiones
+
+La violencia de género en Ecuador presenta una alta prevalencia e importantes diferencias según las características de la mujer (estado civil, educación, número de hijos, etc), pero factores como la violencia en familia de orígen y aspectos culturales como los roles de género son relacionales y de roles de género son los más relevantes.
+
+La variabilidad encontrada entre provincias y, sobre todo, entre las unidades primarias de muestreo, evidencia que el entorno social y comunitario es un componente clave para entender la magnitud del problema, por lo que la utilización de modelos jerárquicos es muy relevante.
+
+El uso de un modelo nulo mostró la importancia de estimar la variabilidad entre niveles, mientras que la inclusión progresiva de predictores individuales y contextuales evidenció cómo se mejora el ajuste del modelo y la capacidad explicativa.
